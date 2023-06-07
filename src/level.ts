@@ -11,7 +11,11 @@ type LevelOptions = {
     tilesetKey: string,
     tilesetUrl: string
 }
-
+type Keys = {
+    jump: Phaser.Input.Keyboard.Key,
+    left: Phaser.Input.Keyboard.Key,
+    right: Phaser.Input.Keyboard.Key,
+}
 export default abstract class Level extends Phaser.Scene {
     levelOptions: LevelOptions;
 
@@ -19,7 +23,9 @@ export default abstract class Level extends Phaser.Scene {
     flag!: Phaser.Types.Physics.Arcade.ImageWithDynamicBody;
     map!: Phaser.Tilemaps.Tilemap;
     player!: Player;
-
+    w!: number;
+    h!: number;
+    keys!: Keys;
     constructor(key: string, levelOptions: LevelOptions) {
         super(key);
 
@@ -35,8 +41,37 @@ export default abstract class Level extends Phaser.Scene {
         this.load.image('flag', portal);
         this.load.image('pause', pause);
     }
+    addKeys() {
+        this.keys = {
+            jump: this.input.keyboard!.addKey('W'),
+            left: this.input.keyboard!.addKey('A'),
+            right: this.input.keyboard!.addKey('D'),
+        }
+        this.keys.jump = this.input.keyboard!.addKey('W');
+        this.keys.left = this.input.keyboard!.addKey('A');
+        this.keys.right = this.input.keyboard!.addKey('D');
+        this.keys.jump!.on('down', () => {
+            this.player.isJumpHeld = true;
+        })
+    }
+    checkPlayerState(){
 
+        if (this.keys.left.isDown) {
+            this.player.movingLeft = true;
+        } else {
+            this.player.movingLeft = false;
+        }
+        if (this.keys.right.isDown) {
+            this.player.movingRight = true;
+        } else {
+            this.player.movingRight = false;
+        }
+
+
+        this.player.update();
+    }
     create(): void {
+        
         let camera = this.cameras.main;
 
         this.pause = this.add.image(camera.width * 4 - 500, camera.height * 4 - 500, 'pause')
@@ -71,7 +106,6 @@ export default abstract class Level extends Phaser.Scene {
         // miscLayer.setDepth(2);
         let groundLayer = this.map.createLayer('ground', groundTiles, 0, 0)!;
         groundLayer.setScale(4);
-        // groundLayer.setDepth(1);
         // the player will collide with this layer
         groundLayer.setCollisionByExclusion([-1]);
 
@@ -82,8 +116,15 @@ export default abstract class Level extends Phaser.Scene {
         let objLayer = this.map.getObjectLayer('objs')!
         let start = objLayer.objects.find(v => v.name == 'start')!
 
-        this.player = new Player(this, start.x!, start.y!, 'player').setScale(0.5)
+        this.w = this.game.config.width as number;
+        this.h = this.game.config.height as number;
+        this.addKeys();
+        this.player = new Player(this, start.x!, start.y!, 'player').setScale(5)
+        
         this.add.existing(this.player)
+        this.physics.add.existing(this.player);
+        this.physics.world.setBounds(0, 0, this.w, this.h);
+        this.player.setCollideWorldBounds(true);
 
         /* let finish = */ objLayer.objects.find(v => v.name == 'finish')!
 
@@ -99,7 +140,7 @@ export default abstract class Level extends Phaser.Scene {
 
     update(time: number, delta: number) {
         super.update(time, delta);
-
+        this.checkPlayerState();
         // TODO: make the pause button not have world coordinates
     }
 }

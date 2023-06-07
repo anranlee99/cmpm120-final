@@ -81,6 +81,7 @@ class TestScene extends Phaser.Scene {
         this.player.update();
     }
     create() {
+        this.scene.start('level1');
         this.setUp();
         //get rid of this if you don't want the ghost
         this.addGhost();
@@ -123,7 +124,7 @@ let game = new Phaser.Game({
     },
     parent: 'app',
     title: "CMPM120 Final",
-    scene: [TestScene, Level1, Level2, Level3]
+    scene: [ TestScene, Level1, Level2, Level3]
 })
 
 declare global {

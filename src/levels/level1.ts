@@ -12,5 +12,5 @@ export default class Level1 extends Level {
             tilesetName: 'lab',
             tilesetUrl: lab
         });
-    }
+    } 
 }
