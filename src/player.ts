@@ -1,3 +1,4 @@
+
 export enum PlayerState {
     ON_GROUND,
     IN_AIR,
@@ -13,28 +14,65 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
     isJumpHeld: boolean
 
     //constants. modify these to tweak 
-    static GRAVITY: number = 50;
-    static X_INC: number = 60;
-    static TOP_SPEED: number = 600;
-    static JUMP_HEIGHT: number = -1500;
+    static GRAVITY: number = 50/2;
+    static X_INC: number = 60/4;
+    static TOP_SPEED: number = 600/4;
+    static JUMP_HEIGHT: number = -1500/3;
     static MAX_JUMPS: number = 2;
-    static WALL_SLIDE_SPEED: number = 100;
+    static WALL_SLIDE_SPEED: number = 100/4;
     static WALL_FRICTION: number = 2;
-    static TERMINAL_VELOCITY: number = 1700;
+    static TERMINAL_VELOCITY: number = 1700/8;
 
-    constructor(scene: Phaser.Scene, x: number, y: number, image: string) {
-        super(scene, x, y, image)
+    constructor(scene: Phaser.Scene, x: number, y: number, imageKeys: string[]) {
+        super(scene, x, y, imageKeys[0]);
         this.jumpCount = Player.MAX_JUMPS;
         this.body = new Phaser.Physics.Arcade.Body(scene.physics.world, this)
         this.state = PlayerState.IN_AIR;
         this.movingLeft = false;
         this.movingRight = false;
         this.isJumpHeld = false;
+        //['doc', 'docRun', 'docJump', 'doubleJump', 'wallscrape']
+        this.anims.create({
+            key: 'idle',
+            frames: this.anims.generateFrameNumbers(imageKeys[0], { start: 0, end: 1 }),
+            frameRate: 7,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'docrun',
+            frames: this.anims.generateFrameNumbers('docRun', { start: 0, end: 9 }),
+            frameRate: 10,
+            repeat: -1
+        });
+        this.anims.create({
+            key: 'docjump',
+            frames: this.anims.generateFrameNumbers('docJump', { start: 0, end: 4 }),
+            frameRate: 5,
+            repeat: 0
+        });
+        this.anims.create({
+            key: 'doubleJump',
+            frames: this.anims.generateFrameNumbers('doubleJump', { start: 0, end: 4 }),
+            frameRate: 5,
+            repeat: 0
+        });
     }
 
     private jump() {
         if (this.jumpCount) {
             this.setVelocityY(Player.JUMP_HEIGHT);
+            if(this.jumpCount == 2){
+                this.anims.play('docjump', true);
+            } else {
+                this.anims.play('doubleJump', true);
+            }
+            if(this.movingLeft){
+                this.flipX = true;
+            } else {
+                this.flipX = false;
+            } 
+        
+
             this.jumpCount--;
             // make the player "bounce" off the wall when jumping when sliding
             if (this.state == PlayerState.LEFT_SLIDE) {
@@ -48,12 +86,17 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
         if (this.body.touching.down || this.body.touching.left || this.body.touching.right ){
             if (this.body.touching.down ) {
                 this.state = PlayerState.ON_GROUND;
+                // this.anims.play('idle', true);
             }
             if (this.body.touching.left  ) {
                 this.state = PlayerState.LEFT_SLIDE;
+                this.setTexture('wallscrape');
+                this.flipX = true;
             }
             if (this.body.touching.right ) {
                 this.state = PlayerState.RIGHT_SLIDE;
+                this.setTexture('wallscrape');
+                this.flipX = false;
             }
         } else {
             this.state = PlayerState.IN_AIR;
@@ -97,11 +140,16 @@ export class Player extends Phaser.Physics.Arcade.Sprite {
 
             case PlayerState.ON_GROUND:
                 if(this.movingLeft){
+                    this.anims.play('docrun', true)
+                    this.flipX = true;
                     this.setVelocityX(Math.max(this.body.velocity.x -Player.X_INC, -Player.TOP_SPEED));
                 } else if(this.movingRight){
+                    this.flipX = false;
+                    this.anims.play('docrun', true)
                     this.setVelocityX(Math.min(this.body.velocity.x +Player.X_INC, Player.TOP_SPEED));
                 } else {
                     this.setVelocityX(0);
+                    this.anims.play('idle', true)
                 }
                 this.setVelocityY(Math.min(this.body.velocity.y + Player.GRAVITY, Player.TERMINAL_VELOCITY));
                 break;
