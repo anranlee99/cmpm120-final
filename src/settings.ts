@@ -1,12 +1,21 @@
-class Settings extends Phaser.Scene {
+import 'phaser';
+
+import resume from './assets/resume.png';
+import audio_on from './assets/audio_on.png';
+import audio_off from './assets/audio_off.png';
+
+export default class Settings extends Phaser.Scene {
+    back!: Phaser.GameObjects.Image
+    audioon!: Phaser.GameObjects.Image
+    audiooff!: Phaser.GameObjects.Image
+
     constructor() {
         super('settings');
     }
     preload() {
-        this.load.path = "./assets/";
-        this.load.image('resume', 'resume.png');
-        this.load.image('audioon', 'audio_on.png');
-        this.load.image('audiooff', 'audio_off.png');
+        this.load.image('resume', resume);
+        this.load.image('audioon', audio_on);
+        this.load.image('audiooff', audio_off);
     }
     create() {
         const centerX = this.cameras.main.width / 2;

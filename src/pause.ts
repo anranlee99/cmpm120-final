@@ -1,17 +1,29 @@
-class Pause extends Phaser.Scene {
+import 'phaser';
+
+import resume from './assets/resume.png';
+import settings from './assets/settings.png';
+import quit from './assets/quit.png';
+import mapbut from './assets/mapbut.png';
+
+export default class Pause extends Phaser.Scene {
+    pauseText!: Phaser.GameObjects.Text
+    resume!: Phaser.GameObjects.Image
+    settings!: Phaser.GameObjects.Image
+    quit!: Phaser.GameObjects.Image
+    mapbut!: Phaser.GameObjects.Image
+
     constructor() {
         super('pause');
     }
     preload() {
-        this.load.path = "./assets/";
-        this.load.image('resume', 'resume.png');
-        this.load.image('settings', 'settings.png');
-        this.load.image('quit', 'quit.png');
-        this.load.image('mapbut', 'mapbut.png');
+        this.load.image('resume', resume);
+        this.load.image('settings', settings);
+        this.load.image('quit', quit);
+        this.load.image('mapbut', mapbut);
     }
     create() {
         this.cameras.main.setBackgroundColor('#36454f');
-        this.textObject0 = this.add.text(
+        this.pauseText = this.add.text(
             50, //x
             50,//y
             "pause", //text
@@ -29,7 +41,7 @@ class Pause extends Phaser.Scene {
         .on('pointerover', () => this.resume.setAlpha(0.4))
         .on('pointerout', () => this.resume.setAlpha(1))
         .on('pointerdown', () => {
-            this.scene.start(previousScene);
+            this.scene.stop();
         });
         this.resume.setScale(.8)
 
@@ -40,7 +52,7 @@ class Pause extends Phaser.Scene {
         .on('pointerover', () => this.settings.setAlpha(0.4))
         .on('pointerout', () => this.settings.setAlpha(1))
         .on('pointerdown', () => {
-            this.scene.start('settings');
+            this.scene.run('settings');
         });
 
         this.quit = this.add.image(centerX, centerY, 'quit')
@@ -49,6 +61,9 @@ class Pause extends Phaser.Scene {
         .on('pointerover', () => this.quit.setAlpha(0.4))
         .on('pointerout', () => this.quit.setAlpha(1))
         .on('pointerdown', () => {
+            let sceneStack = this.scene.manager.getScenes(false, true)
+            this.scene.stop(sceneStack[0]);
+            this.scene.stop(sceneStack[1]);
             this.scene.start('title');
         });
 
@@ -58,6 +73,9 @@ class Pause extends Phaser.Scene {
         .on('pointerover', () => this.mapbut.setAlpha(0.4))
         .on('pointerout', () => this.mapbut.setAlpha(1))
         .on('pointerdown', () => {
+            let sceneStack = this.scene.manager.getScenes(false, true)
+            this.scene.stop(sceneStack[0]);
+            this.scene.stop(sceneStack[1]);
             this.scene.start('map');
         });
     }

@@ -1,18 +1,26 @@
-class Map extends Phaser.Scene {
+import 'phaser';
+
+import lev1 from './assets/lev1.png';
+import lev2 from './assets/lev2.png';
+import lev3 from './assets/lev3.png';
+
+export default class Map extends Phaser.Scene {
+    lev1!: Phaser.GameObjects.Image;
+    lev2!: Phaser.GameObjects.Image;
+    lev3!: Phaser.GameObjects.Image;
+
     constructor() {
         super('map');
     }
     preload() {
-        this.load.path = "./assets/";
-        this.load.image('lev1', 'lev1.png')
-        this.load.image('lev2', 'lev2.png')
-        this.load.image('lev3', 'lev3.png')
+        this.load.image('lev1', lev1)
+        this.load.image('lev2', lev2)
+        this.load.image('lev3', lev3)
     }
     create() {
 
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
-        previousScene = this.scene.key;
 
         this.cameras.main.setBackgroundColor('#536872');
 

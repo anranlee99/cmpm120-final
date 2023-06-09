@@ -1,4 +1,6 @@
-class Intro extends Phaser.Scene {
+import 'phaser';
+
+export default class Intro extends Phaser.Scene {
     constructor() {
         super('Intro');
     }
@@ -24,7 +26,5 @@ class Intro extends Phaser.Scene {
                 this.scene.start("title")
             }
         })
-    }
-    update(){
     }
 }

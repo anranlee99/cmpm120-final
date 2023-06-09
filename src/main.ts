@@ -4,6 +4,11 @@ import { Player } from './player';
 import Level1 from "./levels/level1.ts";
 import Level2 from "./levels/level2.ts";
 import Level3 from "./levels/level3.ts";
+import Intro from "./intro.ts";
+import Title from "./title.ts";
+import Map from "./map.ts";
+import Pause from "./pause.ts";
+import Settings from "./settings.ts";
 
 type Keys = {
     jump: Phaser.Input.Keyboard.Key,
@@ -124,7 +129,7 @@ let game = new Phaser.Game({
     },
     parent: 'app',
     title: "CMPM120 Final",
-    scene: [ TestScene, Level1, Level2, Level3]
+    scene: [Intro, Title, Map, Pause, Settings, Level1, Level2, Level3, TestScene]
 })
 
 declare global {
