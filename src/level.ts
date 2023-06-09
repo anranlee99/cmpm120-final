@@ -74,7 +74,7 @@ export default abstract class Level extends Phaser.Scene {
         
         let camera = this.cameras.main;
 
-        this.pause = this.add.image(camera.width * 4 - 500, camera.height * 4 - 500, 'pause')
+        this.pause = this.add.image(camera.width, camera.height-100, 'pause')
         this.pause.setDepth(1)
             .setInteractive()
             .on('pointerover', () => this.pause.setAlpha(0.4))
@@ -82,36 +82,25 @@ export default abstract class Level extends Phaser.Scene {
             .on('pointerdown', () => {
                 this.scene.start('pause')
             });
-        this.pause.setScale(1);
-        this.pause.setOrigin(1, 0);
 
         // Keep the image anchored to the top right corner during camera scroll
         camera.scrollX = 0; // Set the initial scroll position to 0
         camera.scrollY = 0;
         camera.setScroll(this.pause.width, 0);
 
-        this.flag = this.physics.add.image(230, 350, 'flag');
+        this.flag = this.physics.add.image(230/4, 350/4, 'flag');
         this.flag.body.allowGravity = false;
         this.flag.setDepth(1);
-        this.flag.setScale(4);
+        this.flag.setScale(1);
         this.flag.setImmovable(true);
 
         this.map = this.make.tilemap({ key: this.levelOptions.levelKey });
         let groundTiles = this.map.addTilesetImage(this.levelOptions.tilesetName, this.levelOptions.tilesetKey)!;
-        let wallLayer = this.map.createLayer('walls', groundTiles, 0, 0)!;
-        wallLayer.setScale(4);
-        // wallLayer.setDepth(0);
-        let miscLayer = this.map.createLayer('misc', groundTiles, 0, 0)!;
-        miscLayer.setScale(4);
-        // miscLayer.setDepth(2);
-        let groundLayer = this.map.createLayer('ground', groundTiles, 0, 0)!;
-        groundLayer.setScale(4);
-        // the player will collide with this layer
-        groundLayer.setCollisionByExclusion([-1]);
-
-        // set the boundaries of our game world
-        this.physics.world.bounds.width = groundLayer.width * 4;
-        this.physics.world.bounds.height = groundLayer.height * 4;
+        /*let wallLayer = */this.map.createLayer('walls', groundTiles, 0, 0)!;
+        /*let miscLayer = */this.map.createLayer('misc', groundTiles, 0, 0)!;
+        let groundLayer = this.map.createLayer('ground', groundTiles, 0, 0)! as Phaser.Tilemaps.TilemapLayer;
+        this.physics.world.bounds.width = groundLayer.width;
+        this.physics.world.bounds.height = groundLayer.height;
 
         let objLayer = this.map.getObjectLayer('objs')!
         let start = objLayer.objects.find(v => v.name == 'start')!
@@ -119,28 +108,43 @@ export default abstract class Level extends Phaser.Scene {
         this.w = this.game.config.width as number;
         this.h = this.game.config.height as number;
         this.addKeys();
-        this.player = new Player(this, start.x!, start.y!, 'player').setScale(5)
-        
+        this.player = new Player(this, start.x!, start.y!, 'player')
         this.add.existing(this.player)
         this.physics.add.existing(this.player);
-        this.physics.world.setBounds(0, 0, this.w, this.h);
-        this.player.setCollideWorldBounds(true);
+        this.player.body.setSize(this.player.body.width/2, this.player.body.height)
 
-        /* let finish = */ objLayer.objects.find(v => v.name == 'finish')!
+        groundLayer.forEachTile(tile => {
+            if(tile.index != -1){
+                let r = this.add.rectangle(tile.getCenterX(), tile.getCenterY(), tile.width, tile.height).setAlpha(0).setOrigin(0.5)
+                // let r = this.add.rectangle(tile.x, tile.y, tile.width, tile.height).setAlpha(0).setOrigin(0.5
+           
+            this.physics.add.existing(r, true)
+            this.physics.add.collider(this.player, r)
+        }
+            
+        })
 
-        this.physics.add.collider(groundLayer, this.player)
+        objLayer.objects.find(v => v.name == 'finish')! //?
+        objLayer.objects.filter(obj => obj.name === 'spike'); //TODO: add collision w/player
 
-        /* let spikes = */ objLayer.objects.filter(obj => obj.name === 'spike');
-        // this.physics.add.overlap(this.player, spikes, this.handleSpikeCollision, null, this);
-
-        camera.setBounds(0, 0, this.map.widthInPixels * 4, this.map.heightInPixels * 4);
+        camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         camera.startFollow(this.player);
+        console.log(camera)
+        camera.setZoom(4);
+        
+        this.pause.setScale(0.25)
+        this.pause.setX(camera.worldView.x + camera.worldView.width - this.pause.displayWidth)
+        this.pause.setY(camera.worldView.y + this.pause.displayHeight)
+        
         camera.setBackgroundColor('#ccccff');
+
     }
 
     update(time: number, delta: number) {
         super.update(time, delta);
         this.checkPlayerState();
-        // TODO: make the pause button not have world coordinates
+
+        this.pause.setX(this.cameras.main.worldView.x + this.cameras.main.worldView.width - this.pause.displayWidth)
+        this.pause.setY(this.cameras.main.worldView.y + this.pause.displayHeight)
     }
 }
