@@ -7,6 +7,10 @@ import doubleJump from './assets/doublejump.png';
 import doc from './assets/doc.png';
 import wallscrape from './assets/wallscrape.png';
 import levelMusic from './assets/levelMusic.mp3';
+import touchLeft from './assets/left.png';
+import touchRight from './assets/right.png';
+import touchJump from './assets/up.png';
+import touchRewind from './assets/rewind.png';
 import { Player } from "./player.ts";
 
 type LevelOptions = {
@@ -21,6 +25,42 @@ type Keys = {
     left: Phaser.Input.Keyboard.Key,
     right: Phaser.Input.Keyboard.Key,
 }
+type Touch = {
+    left:   TouchInput,
+    right: TouchInput,
+    jump: TouchInput,
+}
+class TouchInput extends Phaser.GameObjects.Image
+{
+    isDown: boolean;
+    onPressed: (() => void) | null;
+    onReleased: (() => void) | null;
+    constructor(scene: Phaser.Scene , x: number, y: number, texture: string)
+    {
+        super(scene, x, y, texture);
+
+        this.setInteractive();
+        this.isDown = false;
+
+        this.onPressed = null;
+        this.onReleased = null;
+
+        this.on('pointerdown', () => { this.isDown = true; });
+        this.on('pointerup', () => { this.pointerUp(); });
+        this.on('pointerout', () => { this.pointerUp(); });
+    }
+
+    pointerUp()
+    {
+        this.isDown = false;
+        // if(this.onReleased != null) this.onReleased();
+    }
+
+    update()
+    {
+        // if(this.isDown && this.onPressed != null) this.onPressed();
+    }
+}
 export default abstract class Level extends Phaser.Scene {
     levelOptions: LevelOptions;
 
@@ -31,6 +71,7 @@ export default abstract class Level extends Phaser.Scene {
     w!: number;
     h!: number;
     keys!: Keys;
+    touch!: Touch;
     constructor(key: string, levelOptions: LevelOptions) {
         super(key);
 
@@ -59,21 +100,33 @@ export default abstract class Level extends Phaser.Scene {
         });
         this.load.spritesheet('doubleJump', doubleJump, { frameWidth: 16, frameHeight: 32 });
         this.load.image('wallscrape', wallscrape);
+        this.load.image('touchLeft', touchLeft);
+        this.load.image('touchRight', touchRight);
+        this.load.image('touchJump', touchJump);
+        this.load.image('touchRewind', touchRewind);
         
         
     }
     addKeys() {
-        this.keys = {
-            jump: this.input.keyboard!.addKey('W'),
-            left: this.input.keyboard!.addKey('A'),
-            right: this.input.keyboard!.addKey('D'),
+        if(this.game.device.input.touch){
+            // this.touch.left = this.add.image(0, 0, 'touchLeft').setOrigin(0, 0).setInteractive();
+            this.touch.left = new TouchInput(this, this.w * 0.1, this.h*0.9, 'touchLeft');
+            this.touch.right = new TouchInput(this, this.w * 0.3, this.h*0.9, 'touchRight');
+            this.touch.jump = new TouchInput(this, this.w * 0.9, this.h*0.9, 'touchJump');
+        } else {
+            this.keys = {
+                jump: this.input.keyboard!.addKey('W'),
+                left: this.input.keyboard!.addKey('A'),
+                right: this.input.keyboard!.addKey('D'),
+            }
+            this.keys.jump = this.input.keyboard!.addKey('W');
+            this.keys.left = this.input.keyboard!.addKey('A');
+            this.keys.right = this.input.keyboard!.addKey('D');
+            this.keys.jump!.on('down', () => {
+                this.player.isJumpHeld = true;
+            })
         }
-        this.keys.jump = this.input.keyboard!.addKey('W');
-        this.keys.left = this.input.keyboard!.addKey('A');
-        this.keys.right = this.input.keyboard!.addKey('D');
-        this.keys.jump!.on('down', () => {
-            this.player.isJumpHeld = true;
-        })
+        
     }
     checkPlayerState() {
 
