@@ -3,11 +3,13 @@ import 'phaser';
 import resume from './assets/resume.png';
 import audio_on from './assets/audio_on.png';
 import audio_off from './assets/audio_off.png';
+import fullscreen from './assets/fullscreen.png';
 
 export default class Settings extends Phaser.Scene {
     back!: Phaser.GameObjects.Image
     audioon!: Phaser.GameObjects.Image
     audiooff!: Phaser.GameObjects.Image
+    fullscreen!: Phaser.GameObjects.Image
 
     constructor() {
         super('settings');
@@ -16,8 +18,10 @@ export default class Settings extends Phaser.Scene {
         this.load.image('resume', resume);
         this.load.image('audioon', audio_on);
         this.load.image('audiooff', audio_off);
+        this.load.image('fullscreen', fullscreen)
     }
     create() {
+        this.scene.bringToTop();
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 
@@ -40,6 +44,8 @@ export default class Settings extends Phaser.Scene {
         .on('pointerout', () => this.audioon.setAlpha(1))
         .on('pointerdown', () => {
             /////////////////music on/////////////////
+            this.sound.mute = false;
+            
         });
 
         this.audiooff = this.add.image(centerX + 200, centerY, 'audiooff')
@@ -48,7 +54,16 @@ export default class Settings extends Phaser.Scene {
         .on('pointerover', () => this.audiooff.setAlpha(0.4))
         .on('pointerout', () => this.audiooff.setAlpha(1))
         .on('pointerdown', () => {
-            ////////////////music off///////////////
+            this.sound.mute = true;
+        });
+
+        this.fullscreen = this.add.image(centerX, this.cameras.main.height *0.7, 'fullscreen')
+        this.fullscreen.setScale(3)
+        .setInteractive()
+        .on('pointerover', () => this.audiooff.setAlpha(0.4))
+        .on('pointerout', () => this.audiooff.setAlpha(1))
+        .on('pointerdown', () => {
+            this.scale.toggleFullscreen();
         });
     }
 }

@@ -18,7 +18,7 @@ export default class Map extends Phaser.Scene {
         this.load.image('lev3', lev3)
     }
     create() {
-
+        this.scene.bringToTop();
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 

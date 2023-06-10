@@ -1,13 +1,13 @@
 import 'phaser';
-
 export default class Intro extends Phaser.Scene {
     constructor() {
         super('Intro');
     }
     preload(){
-
+        
     }
     create(){
+        
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
 

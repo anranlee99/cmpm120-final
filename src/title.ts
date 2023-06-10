@@ -1,5 +1,6 @@
 import 'phaser';
 
+import menuMusic from './assets/menuMusic.mp3';
 import title from './assets/title.png';
 
 export default class Title extends Phaser.Scene {
@@ -9,9 +10,14 @@ export default class Title extends Phaser.Scene {
         super('title');
     }
     preload() {
+        this.load.audio('menuMusic', menuMusic);
         this.load.image('title', title);
     }
     create() {
+        this.scene.bringToTop();
+        //@ts-ignore
+        this.sound.getAll().forEach(s => s.destroy())
+        this.sound.play('menuMusic', {loop: true, volume: 0.5});
         this.cameras.main.setBackgroundColor('#1D4625');
 
         const centerX = this.cameras.main.width / 2;

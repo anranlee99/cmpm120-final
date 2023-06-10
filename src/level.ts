@@ -6,6 +6,7 @@ import docJump from './assets/docjump.png';
 import doubleJump from './assets/doublejump.png';
 import doc from './assets/doc.png';
 import wallscrape from './assets/wallscrape.png';
+import levelMusic from './assets/levelMusic.mp3';
 import { Player } from "./player.ts";
 
 type LevelOptions = {
@@ -37,6 +38,7 @@ export default abstract class Level extends Phaser.Scene {
     }
 
     preload(): void {
+        this.load.audio('levelMusic', levelMusic);
         this.load.tilemapTiledJSON(this.levelOptions.levelKey, this.levelOptions.levelUrl);
 
         this.load.spritesheet(this.levelOptions.tilesetKey, this.levelOptions.tilesetUrl, { frameWidth: 16, frameHeight: 16 });
@@ -90,7 +92,10 @@ export default abstract class Level extends Phaser.Scene {
         this.player.update();
     }
     create(): void {
-
+        //@ts-ignore
+        this.sound.getAll().forEach(s => s.destroy())
+        this.sound.play('levelMusic', { loop: true, volume: 0.25});
+        
         let camera = this.cameras.main;
         this.map = this.make.tilemap({ key: this.levelOptions.levelKey });
         let groundTiles = this.map.addTilesetImage(this.levelOptions.tilesetName, this.levelOptions.tilesetKey)!;

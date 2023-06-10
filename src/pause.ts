@@ -65,9 +65,11 @@ export default class Pause extends Phaser.Scene {
         .on('pointerout', () => this.quit.setAlpha(1))
         .on('pointerdown', () => {
             let sceneStack = this.scene.manager.getScenes(false, true)
+            
             this.scene.stop(sceneStack[0]);
             this.scene.stop(sceneStack[1]);
             this.scene.start('title');
+            
         });
 
         this.mapbut = this.add.image(centerX, centerY - 300, 'mapbut')
