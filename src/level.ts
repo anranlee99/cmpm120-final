@@ -122,7 +122,6 @@ export default abstract class Level extends Phaser.Scene {
             .on('pointerover', () => this.pause.setAlpha(0.4))
             .on('pointerout', () => this.pause.setAlpha(1))
             .on('pointerdown', () => {
-                console.log('pause clicked')
                 this.scene.pause()
                 this.scene.run('pause')
             });
