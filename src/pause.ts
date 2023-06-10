@@ -22,6 +22,7 @@ export default class Pause extends Phaser.Scene {
         this.load.image('mapbut', mapbut);
     }
     create() {
+        this.scene.bringToTop();
         this.cameras.main.setBackgroundColor('#36454f');
         this.pauseText = this.add.text(
             50, //x
@@ -42,6 +43,8 @@ export default class Pause extends Phaser.Scene {
         .on('pointerout', () => this.resume.setAlpha(1))
         .on('pointerdown', () => {
             this.scene.stop();
+            let sceneToResume = this.scene.manager.getScenes(false).find((s) => s.scene.isPaused())
+            sceneToResume!.scene.resume();
         });
         this.resume.setScale(.8)
 
