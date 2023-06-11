@@ -9,7 +9,7 @@ import wallscrape from './assets/wallscrape.png';
 import levelMusic from './assets/levelMusic.mp3';
 import touchLeft from './assets/left.png';
 import touchRight from './assets/right.png';
-import touchJump from './assets/up.png';
+import touchJump from './assets/jump.png';
 import touchRewind from './assets/rewind.png';
 import { Player } from "./player.ts";
 
@@ -20,21 +20,20 @@ type LevelOptions = {
     tilesetKey: string,
     tilesetUrl: string
 }
-type Keys = {
-    jump: Phaser.Input.Keyboard.Key,
-    left: Phaser.Input.Keyboard.Key,
-    right: Phaser.Input.Keyboard.Key,
+type InputFacade = {
+    isDown: boolean,
+    on: (event: any, fn: Function, context?: any) => any,
+
 }
-type Touch = {
-    left:   TouchInput,
-    right: TouchInput,
-    jump: TouchInput,
+type Input = {
+    jump: InputFacade,
+    left: InputFacade,
+    right: InputFacade,
 }
+
 class TouchInput extends Phaser.GameObjects.Image
 {
     isDown: boolean;
-    onPressed: (() => void) | null;
-    onReleased: (() => void) | null;
     constructor(scene: Phaser.Scene , x: number, y: number, texture: string)
     {
         super(scene, x, y, texture);
@@ -42,25 +41,19 @@ class TouchInput extends Phaser.GameObjects.Image
         this.setInteractive();
         this.isDown = false;
 
-        this.onPressed = null;
-        this.onReleased = null;
 
-        this.on('pointerdown', () => { this.isDown = true; });
         this.on('pointerup', () => { this.pointerUp(); });
         this.on('pointerout', () => { this.pointerUp(); });
+
     }
 
     pointerUp()
     {
         this.isDown = false;
-        // if(this.onReleased != null) this.onReleased();
     }
 
-    update()
-    {
-        // if(this.isDown && this.onPressed != null) this.onPressed();
-    }
 }
+
 export default abstract class Level extends Phaser.Scene {
     levelOptions: LevelOptions;
 
@@ -70,8 +63,7 @@ export default abstract class Level extends Phaser.Scene {
     player!: Player;
     w!: number;
     h!: number;
-    keys!: Keys;
-    touch!: Touch;
+    Input!: Input;
     constructor(key: string, levelOptions: LevelOptions) {
         super(key);
 
@@ -109,33 +101,33 @@ export default abstract class Level extends Phaser.Scene {
     }
     addKeys() {
         if(this.game.device.input.touch){
-            // this.touch.left = this.add.image(0, 0, 'touchLeft').setOrigin(0, 0).setInteractive();
-            this.touch.left = new TouchInput(this, this.w * 0.1, this.h*0.9, 'touchLeft');
-            this.touch.right = new TouchInput(this, this.w * 0.3, this.h*0.9, 'touchRight');
-            this.touch.jump = new TouchInput(this, this.w * 0.9, this.h*0.9, 'touchJump');
+            let left = new TouchInput(this, this.w * 0.1, this.h*0.9, 'touchLeft')
+            let right = new TouchInput(this, this.w * 0.3, this.h*0.9, 'touchRight')
+            let jump = new TouchInput(this, this.w * 0.9, this.h*0.9, 'touchJump')
+            this.Input = {
+                jump: jump,
+                left: left,
+                right: right,
+            }
         } else {
-            this.keys = {
+            this.Input = {
                 jump: this.input.keyboard!.addKey('W'),
-                left: this.input.keyboard!.addKey('A'),
+                left:this.input.keyboard!.addKey('A'),
                 right: this.input.keyboard!.addKey('D'),
             }
-            this.keys.jump = this.input.keyboard!.addKey('W');
-            this.keys.left = this.input.keyboard!.addKey('A');
-            this.keys.right = this.input.keyboard!.addKey('D');
-            this.keys.jump!.on('down', () => {
-                this.player.isJumpHeld = true;
-            })
         }
-        
+        this.Input.jump.on('down', () => {
+            this.player.isJumpHeld = true;
+        })
     }
     checkPlayerState() {
 
-        if (this.keys.left.isDown) {
+        if (this.Input.left.isDown) {
             this.player.movingLeft = true;
         } else {
             this.player.movingLeft = false;
         }
-        if (this.keys.right.isDown) {
+        if (this.Input.right.isDown) {
             this.player.movingRight = true;
         } else {
             this.player.movingRight = false;
@@ -145,6 +137,7 @@ export default abstract class Level extends Phaser.Scene {
         this.player.update();
     }
     create(): void {
+        this.scene.launch('HUD');
         //@ts-ignore
         this.sound.getAll().forEach(s => s.destroy())
         this.sound.play('levelMusic', { loop: true, volume: 0.25});
@@ -165,24 +158,11 @@ export default abstract class Level extends Phaser.Scene {
         this.h = this.game.config.height as number;
         this.addKeys();
         this.player = new Player(this, start.x!, start.y!, ['doc', 'docRun', 'docJump', 'doubleJump', 'wallscrape'])
-        this.player.anims.create({
-            key: 'docRun',
-            frames: this.anims.generateFrameNumbers('docrun', { start: 0, end: 9 }),
-            frameRate: 10,
-            repeat: -1
-        })
+
         this.add.existing(this.player)
         this.physics.add.existing(this.player);
 
-        this.pause = this.add.image(camera.width, camera.height - 100, 'pause')
-        this.pause.setDepth(1)
-            .setInteractive()
-            .on('pointerover', () => this.pause.setAlpha(0.4))
-            .on('pointerout', () => this.pause.setAlpha(1))
-            .on('pointerdown', () => {
-                this.scene.pause()
-                this.scene.run('pause')
-            });
+
 
 
 
@@ -199,7 +179,6 @@ export default abstract class Level extends Phaser.Scene {
 
         groundLayer.forEachTile(tile => {
             if (tile.index != -1) {
-                console.log(tile)
                 let r = this.add.rectangle(tile.getCenterX(), tile.getCenterY(), tile.width, tile.height).setAlpha(0).setOrigin(0.5)
                 this.physics.add.existing(r, true)
                 this.physics.add.collider(this.player, r)
@@ -209,12 +188,7 @@ export default abstract class Level extends Phaser.Scene {
 
         camera.setBounds(0, 0, this.map.widthInPixels, this.map.heightInPixels);
         camera.startFollow(this.player, false, 0.5, 0.1);
-        camera.setZoom(4);
-
-        this.pause.setScale(0.25)
-        this.pause.setX(camera.worldView.x + camera.worldView.width - this.pause.displayWidth)
-        this.pause.setY(camera.worldView.y + this.pause.displayHeight)
-
+        camera.setZoom(4)
         camera.setBackgroundColor('#ccccff');
 
     }
@@ -223,7 +197,5 @@ export default abstract class Level extends Phaser.Scene {
         super.update(time, delta);
         this.checkPlayerState();
 
-        this.pause.setX(this.cameras.main.worldView.x + this.cameras.main.worldView.width - this.pause.displayWidth)
-        this.pause.setY(this.cameras.main.worldView.y + this.pause.displayHeight)
     }
 }

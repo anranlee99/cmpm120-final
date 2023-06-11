@@ -9,6 +9,7 @@ import Title from "./title.ts";
 import Map from "./map.ts";
 import Pause from "./pause.ts";
 import Settings from "./settings.ts";
+import HUD from "./hud.ts"
 
 // type Keys = {
 //     jump: Phaser.Input.Keyboard.Key,
@@ -112,6 +113,7 @@ import Settings from "./settings.ts";
 
 let game = new Phaser.Game({
     type: Phaser.WEBGL,
+    antialias: false,
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH,
@@ -129,7 +131,7 @@ let game = new Phaser.Game({
     },
     parent: 'app',
     title: "CMPM120 Final",
-    scene: [Intro, Title, Map, Pause, Settings, Level1, Level2, Level3] //, TestScene
+    scene: [Intro, Title, Map, HUD, Pause, Settings, Level1, Level2, Level3] //, TestScene
 })
 
 declare global {
